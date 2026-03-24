@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Galaxy Core | Portal</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #6366f1;
+            --accent: #10b981;
+            --text: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h1 { margin-bottom: 0.5rem; letter-spacing: 2px; color: var(--primary); }
+        p { color: #94a3b8; margin-bottom: 2rem; font-size: 0.9rem; }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            border: none;
+            color: white;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:active { transform: scale(0.97); }
+        button:disabled { background: #475569; opacity: 0.7; }
+
+        /* Dashboard Styles */
+        #dashboard { display: none; }
+        .user-info {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--accent);
+            margin-top: 20px;
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #334155;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="login-page" class="card">
+            <h1>GALAXY CORE</h1>
+            <p>Ingia kwenye mfumo wa matokeo</p>
+            
+            <input type="text" id="reg-id" placeholder="Namba ya Usajili (ID)">
+            <input type="password" id="pin" placeholder="PIN ya Siri">
+            
+            <button id="login-btn" onclick="handleLogin()">INGIA SASA</button>
+        </div>
+
+        <div id="dashboard" class="card">
+            <h2 style="color: var(--accent);">Hali ya Mwanafunzi</h2>
+            <div class="user-info">
+                <div id="display-name" style="font-weight: bold; font-size: 1.2rem;">---</div>
+                <div id="display-id" style="font-size: 0.8rem; opacity: 0.7;">ID: ---</div>
+            </div>
+            <div style="margin-top: 20px; text-align: left;">
+                <p>Status: <span style="color: var(--accent);">Active</span></p>
+                <p>Matokeo: Tayari yamechapishwa.</p>
+            </div>
+            <button onclick="location.reload()" style="background: #ef4444;">LOGOUT</button>
+        </div>
+    </div>
+
+    <div id="toast">Meseji...</div>
+
+    <script>
+        // ══ FIREBASE CONFIGURATION ══
+        const firebaseConfig = {
+            apiKey: "AIzaSyAc7SBF8CqBH0xgI1H1QQcRjEkM6Topfbc",
+            authDomain: "galactos-html.firebaseapp.com",
+            projectId: "galactos-html",
+            storageBucket: "galactos-html.firebasestorage.app",
+            messagingSenderId: "598731363864",
+            appId: "1:598731363864:web:d9da1927c4e589bfc5d56d"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        function showToast(msg) {
+            const x = document.getElementById("toast");
+            x.innerText = msg;
+            x.className = "show";
+            setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+        async function handleLogin() {
+            const id = document.getElementById("reg-id").value.trim();
+            const pin = document.getElementById("pin").value.trim();
+            const btn = document.getElementById("login-btn");
+
+            if (!id || !pin) {
+                showToast("Tafadhali jaza ID na PIN!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Inahakiki...";
+
+            try {
+                // Connecting to 'students' collection in Firestore
+                const userDoc = await db.collection("students").doc(id).get();
+
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    
+                    if (userData.pin === pin) {
+                        showToast("Karibu, " + (userData.name || "Mwanafunzi"));
+                        
+                        // Switch to Dashboard
+                        document.getElementById("login-page").style.display = "none";
+                        document.getElementById("dashboard").style.display = "block";
+                        document.getElementById("display-name").innerText = userData.name || "User";
+                        document.getElementById("display-id").innerText = "ID: " + id;
+                    } else {
+                        showToast("PIN uliyoweka siyo sahihi!");
+                    }
+                } else {
+                    showToast("ID hii haipo kwenye mfumo wetu!");
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                showToast("Hitilafu! Hakikisha una internet.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "INGIA SASA";
+            }
+        }
+    </script>
+</body>
+</html>
