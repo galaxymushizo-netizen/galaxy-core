@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy Core v1.1 - Mfumo wa Matokeo</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <div id="login-page" class="page fadeIn">
+        <div class="card">
+            <h1>Galaxy Core 🌌</h1>
+            <p>Ingia kama Mwalimu (Admin)</p>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Jina la Mtumiaji (Zamer)" required>
+                <input type="password" id="password" placeholder="Nywila (admin123)" required>
+                <button type="submit">INGIA KWENYE MFUMO</button>
+            </form>
+            <p id="login-message"></p>
+        </div>
+    </div>
+
+    <div id="dashboard-page" class="page" style="display:none;">
+        <nav>
+            <h2>Panel ya Matokeo</h2>
+            <button onclick="logout()" class="btn-red">Toka (Logout)</button>
+        </nav>
+
+        <div class="main-content">
+            <div class="card shadow">
+                <h3>Ingiza Maksi za Mwanafunzi</h3>
+                <form id="student-form">
+                    <input type="text" id="studentName" placeholder="Jina Kamili la Mwanafunzi" required>
+                    <div class="grid-3">
+                        <input type="number" id="physics" placeholder="Physics (0-50)" min="0" max="50">
+                        <input type="number" id="chemistry" placeholder="Chemistry (0-50)" min="0" max="50">
+                        <input type="num
+                          ber
